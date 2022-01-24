@@ -1,0 +1,1146 @@
+// C program to create a chess board
+#include <conio.h>
+#include <unistd.h>
+#include <graphics.h>
+#include <stdlib.h>
+#include <stdio.h>
+//definition for check inboard
+#define inboard(x, y) ((x < 8) && (x >= 0) && (y < 8) && (y >= 0)) ? 1 : 0
+//prototypes
+void boarddisplay();
+void coindisplay();
+void inposition();
+void gameplay();
+void dissoldier(int, int, int);
+void disrook(int, int, int);
+void disknight(int, int, int);
+void disbishop(int, int, int);
+void disqueen(int, int, int);
+void disking(int, int, int);
+void dismovecoin(int, int, int, int, int);
+void cursor(int, int);
+void castling(int, int);
+void gameover(int);
+void coinExchange(int, int);
+void discursor(int, int, int);
+void disbox(int, int);
+void discutcoin(int, int);
+int findcolor(int, int);
+void movesoldier(int, int);
+void moverook(int, int);
+void moveknight(int, int);
+void movebishop(int, int);
+void movequeen(int, int);
+void moveking(int, int);
+void removemark();
+void movecoin(int, int);
+void swaplace(int, int, int, int);
+
+//values for coins
+enum coin1
+{
+	sl1 = 1,
+	rk1,
+	kt1,
+	bp1,
+	qn1,
+	kg1
+};
+enum coin2
+{
+	sl2 = 11,
+	rk2,
+	kt2,
+	bp2,
+	qn2,
+	kg2
+};
+//*********************************************************************************************************///
+//global declaration///
+int *place[8], i = 0, j = 0, colour = 0, selectcoin = 0, axisx = 0, axisy = 0, coin1x = -2, coin2x = 9, coin1y = 0, coin2y = 0, player = 2, clr1r = 0, clr1l = 0, clr2r = 0, clr2l = 0;
+int clk1 = 0, clk2 = 0, *cutcoin1[2], *cutcoin2[2], king1x = 4, king1y = 0, king2x = 4, king2y = 7, goconst = 0; ///
+//********************************************************************************************************///
+//main function
+int main()
+{
+	inposition();
+	boarddisplay();
+	gameplay();
+	gameover(goconst);
+	getch();
+	closegraph();
+}
+
+//initializes the position of the coins when the game begins
+void inposition()
+{
+	for (i = 0; i < 8; i++)
+	{
+		place[i] = (int *)calloc(8, sizeof(int));
+	}
+	for (i = 0; i < 2; i++)
+	{
+		cutcoin1[i] = (int *)calloc(8, sizeof(int));
+		cutcoin2[i] = (int *)calloc(8, sizeof(int));
+	}
+	//positioning the numbers of the coins in the array
+	for (i = 0; i < 8; i++)
+	{
+		for (j = 0; j < 8; j++)
+		{
+			if ((i == 0) && (j < 5))
+			{
+				place[i][j] = j + 2;
+			}
+			else if ((i == 0) && (j >= 5))
+			{
+				place[i][j] = 9 - j;
+			}
+			else if ((i == 7) && (j < 5))
+			{
+				place[i][j] = j + 12;
+			}
+			else if ((i == 7) && (j >= 5))
+			{
+				place[i][j] = 19 - j;
+			}
+			else if ((i == 1))
+			{
+				place[i][j] = 1;
+			}
+			else if (i == 6)
+			{
+				place[i][j] = 11;
+			}
+			else
+			{
+				place[i][j] = 0;
+			}
+		}
+	}
+}
+//diaplay the title, instructions and the board
+void boarddisplay()
+{
+	int gd = DETECT, gm;
+	int r, c, x = 300, y = 50, black = 1;
+	char cr;
+	initgraph(&gd, &gm, (char *)"C:\\TURBOC3\\BGI");
+	initwindow(1500, 750, "CHESS BOARD", 0, 0, 0, 1);
+	//display the instructons to play the game
+	setbkcolor(9);
+	cleardevice();
+	settextstyle(10, 0, 10);
+	setcolor(0);
+	outtextxy(300, 260, (char *)"CHESS GAME");
+	getch();
+	setbkcolor(15);
+	cleardevice();
+	settextstyle(10, 0, 5);
+	setcolor(0);
+	outtextxy(450, 100, (char *)"CURSOR CONTROL");
+	outtextxy(450, 150, (char *)"t :move up");
+	outtextxy(450, 200, (char *)"d :move down");
+	outtextxy(450, 250, (char *)"r :move right");
+	outtextxy(450, 300, (char *)"l :move legt");
+	outtextxy(450, 350, (char *)"e :select coin");
+	settextstyle(10, 0, 3);
+	outtextxy(450, 500, (char *)"press any key to continue");
+	setbkcolor(WHITE);
+	getch();
+	cleardevice();
+	settextstyle(10, 0, 5);
+	outtextxy(450, 200, (char *)"PLAYER 1");
+	outtextxy(550, 250, (char *)"VS");
+	outtextxy(550, 300, (char *)"PLAYER 2");
+	setbkcolor(WHITE);
+	getch();
+	cleardevice();
+	//display the board
+	for (r = 0; r < 8; r++)
+	{
+		for (c = 1; c <= 8; c++)
+		{
+			if (black == 0)
+			{
+				setcolor(BLACK);
+				setfillstyle(SOLID_FILL, BLACK);
+				rectangle(x, y, x + 80, y + 80);
+				floodfill(x + 1, y + 1, BLACK);
+				black = 1;
+			}
+			else
+			{
+				setcolor(BLACK);
+				setfillstyle(SOLID_FILL, WHITE);
+				rectangle(x, y, x + 80, y + 80);
+				floodfill(x + 1, y + 1, BLACK);
+				black = 0;
+			}
+			x = x + 80;
+			Sleep(10);
+		}
+		if (black == 0)
+			black = 1;
+		else
+			black = 0;
+
+		Sleep(10);
+		x = 300;
+		y = 80 + y;
+	}
+	//display the letters
+	for (i = 0; i < 8; i++)
+	{
+		cr = (i + 1) + '0';
+		settextstyle(10, 0, 1);
+		outtextxy(276, (i * 80) + 90, &cr);
+		cr = i + 97;
+		settextstyle(10, 0, 1);
+		outtextxy((i * 80) + 340, 30, &cr);
+	}
+	//display the coins in the board
+	coindisplay();
+	//display the outer box
+	line(50, 20, 1200, 20);
+	line(270, 20, 270, 710);
+	line(960, 20, 960, 710);
+	line(1200, 710, 50, 710);
+	line(50, 20, 50, 710);
+	line(1200, 20, 1200, 710);
+	setcolor(0);
+	line(299, 49, 299, 691);
+	line(299, 49, 940, 49);
+	getch();
+}
+//function to display the coins refering to the place[][] array values
+void coindisplay()
+{
+	for (i = 0; i < 8; i++)
+	{
+		for (j = 0; j < 8; j++)
+		{
+			switch (place[i][j])
+			{
+			case 1:
+				dissoldier(j, i, 7);
+				break;
+			case 2:
+				disrook(j, i, 7);
+				break;
+			case 3:
+				disknight(j, i, 7);
+				break;
+			case 4:
+				disbishop(j, i, 7);
+				break;
+			case 5:
+				disqueen(j, i, 7);
+				break;
+			case 6:
+				disking(j, i, 7);
+				break;
+			case 11:
+				dissoldier(j, i, 5);
+				break;
+			case 12:
+				disrook(j, i, 5);
+				break;
+			case 13:
+				disknight(j, i, 5);
+				break;
+			case 14:
+				disbishop(j, i, 5);
+				break;
+			case 15:
+				disqueen(j, i, 5);
+				break;
+			case 16:
+				disking(j, i, 5);
+				break;
+			default:
+				continue;
+			}
+		}
+	}
+}
+//to operate the game for the users
+void gameplay()
+{
+	char c, y = 6, count = 0;
+	int k;
+	while ((c = getch()) != 'z')
+	{
+		cursor(4, y);
+		count++;
+		y = ((count % 2) == 0) ? 6 : 1;
+		player = ((count % 2) == 0) ? 2 : 1;
+		if (goconst != 0)
+			return;
+	}
+}
+//function to display the soldier
+void dissoldier(int x, int y, int color)
+{
+	setcolor(color);
+	setfillstyle(SOLID_FILL, color);
+	bar((x * 80) + 330, (y * 80) + 80, (x * 80) + 350, (y * 80) + 120);
+	floodfill((x * 80) + 331, (y * 80) + 81, color);
+	circle((x * 80) + 340, (y * 80) + 75, 10);
+	floodfill((x * 80) + 341, (y * 80) + 71, color);
+}
+//function to display the rook
+void disrook(int x, int y, int color)
+{
+	setcolor(color);
+	setfillstyle(SOLID_FILL, color);
+	bar((x * 80) + 310, (y * 80) + 60, (x * 80) + 370, (y * 80) + 75);
+	bar((x * 80) + 322, (y * 80) + 75, (x * 80) + 358, (y * 80) + 105);
+	bar((x * 80) + 310, (y * 80) + 105, (x * 80) + 370, (y * 80) + 120);
+	floodfill((x * 80) + 311, (y * 80) + 61, color);
+	floodfill((x * 80) + 333, (y * 80) + 76, color);
+	floodfill((x * 80) + 311, (y * 80) + 106, color);
+}
+//function to display the knight
+void disknight(int x, int y, int color)
+{
+	setcolor(color);
+	setfillstyle(SOLID_FILL, color);
+	bar((x * 80) + 310, (y * 80) + 105, (x * 80) + 370, (y * 80) + 120);
+	bar((x * 80) + 340, (y * 80) + 80, (x * 80) + 368, (y * 80) + 105);
+	bar((x * 80) + 320, (y * 80) + 70, (x * 80) + 368, (y * 80) + 80);
+	circle((x * 80) + 358, (y * 80) + 70, 9);
+	floodfill((x * 80) + 311, (y * 80) + 106, color);
+	floodfill((x * 80) + 341, (y * 80) + 81, color);
+	floodfill((x * 80) + 321, (y * 80) + 71, color);
+	floodfill((x * 80) + 358, (y * 80) + 69, color);
+}
+//function to display the bishop
+void disbishop(int x, int y, int color)
+{
+	int poly[] = {(x * 80) + 327, (y * 80) + 70, (x * 80) + 353, (y * 80) + 70, (x * 80) + 340, (y * 80) + 60, (x * 80) + 327, (y * 80) + 70};
+	setcolor(color);
+	setfillstyle(SOLID_FILL, color);
+	bar((x * 80) + 310, (y * 80) + 105, (x * 80) + 370, (y * 80) + 120);
+	bar((x * 80) + 327, (y * 80) + 70, (x * 80) + 353, (y * 80) + 105);
+	drawpoly(4, poly);
+	floodfill((x * 80) + 311, (y * 80) + 106, color);
+	floodfill((x * 80) + 328, (y * 80) + 71, color);
+	floodfill((x * 80) + 340, (y * 80) + 61, color);
+}
+//function to display the queen
+void disqueen(int x, int y, int color)
+{
+	int poly[] = {(x * 80) + 327, (y * 80) + 70, (x * 80) + 327, (y * 80) + 60, (x * 80) + 335, (y * 80) + 70, (x * 80) + 340, (y * 80) + 60, (x * 80) + 343, (y * 80) + 70, (x * 80) + 353, (y * 80) + 60, (x * 80) + 353, (y * 80) + 70, (x * 80) + 327, (y * 80) + 70};
+	setcolor(color);
+	setfillstyle(SOLID_FILL, color);
+	bar((x * 80) + 310, (y * 80) + 105, (x * 80) + 370, (y * 80) + 120);
+	bar((x * 80) + 327, (y * 80) + 70, (x * 80) + 354, (y * 80) + 105);
+	drawpoly(8, poly);
+	floodfill((x * 80) + 311, (y * 80) + 106, color);
+	floodfill((x * 80) + 328, (y * 80) + 71, color);
+	floodfill((x * 80) + 328, (y * 80) + 69, color);
+	floodfill((x * 80) + 337, (y * 80) + 69, color);
+	floodfill((x * 80) + 351, (y * 80) + 69, color);
+}
+//function to display the king
+void disking(int x, int y, int color)
+{
+	setcolor(color);
+	setfillstyle(SOLID_FILL, color);
+	bar((x * 80) + 310, (y * 80) + 105, (x * 80) + 370, (y * 80) + 120);
+	bar((x * 80) + 327, (y * 80) + 70, (x * 80) + 353, (y * 80) + 105);
+	bar((x * 80) + 337, (y * 80) + 58, (x * 80) + 343, (y * 80) + 70);
+	bar((x * 80) + 327, (y * 80) + 62, (x * 80) + 353, (y * 80) + 68);
+	floodfill((x * 80) + 311, (y * 80) + 106, color);
+	floodfill((x * 80) + 328, (y * 80) + 71, color);
+	floodfill((x * 80) + 338, (y * 80) + 61, color);
+	floodfill((x * 80) + 328, (y * 80) + 63, color);
+}
+//display cursor
+void discursor(int x, int y, int cl)
+{
+	setcolor(cl);
+	setfillstyle(SOLID_FILL, cl);
+	bar((x * 80) + 300, (y * 80) + 50, (x * 80) + 310, (y * 80) + 130);
+	floodfill((x * 80) + 301, (y * 80) + 51, cl);
+	bar((x * 80) + 300, (y * 80) + 50, (x * 80) + 380, (y * 80) + 60);
+	bar((x * 80) + 370, (y * 80) + 50, (x * 80) + 380, (y * 80) + 130);
+	bar((x * 80) + 300, (y * 80) + 120, (x * 80) + 380, (y * 80) + 130);
+}
+//find the color in the given square
+int findcolor(int x, int y)
+{
+	for (i = 0; i <= (x + y); i++)
+	{
+	}
+	return ((i % 2) == 0) ? 0 : 15;
+}
+//function to operate the cursor and to select the coins
+void cursor(int x1, int y1)
+{
+	int x = x1, y = y1;
+	colour = findcolor(x, y);
+	discursor(x1, y1, 2);
+	char c;
+	while (c = getch())
+	{
+		if (c == 'd')
+		{
+			discursor(x, y, colour);
+			y = (y < 7) ? ((y++) + 1) : y;
+			colour = getpixel((x * 80) + 301, (y * 80) + 51);
+			discursor(x, y, 2);
+		}
+		else if (c == 't')
+		{
+			discursor(x, y, colour);
+			y = (y > 0) ? ((y--) - 1) : y;
+			colour = getpixel((x * 80) + 301, (y * 80) + 51);
+			discursor(x, y, 2);
+		}
+		else if (c == 'l')
+		{
+			discursor(x, y, colour);
+			x = (x > 0) ? ((x--) - 1) : x;
+			colour = getpixel((x * 80) + 301, (y * 80) + 51);
+			discursor(x, y, 2);
+		}
+		else if (c == 'r')
+		{
+			discursor(x, y, colour);
+			x = (x < 7) ? ((x++) + 1) : x;
+			colour = getpixel((x * 80) + 301, (y * 80) + 51);
+			discursor(x, y, 2);
+		}
+		else if (c == 'e')
+		{
+			if (colour == RED)
+			{
+				disbox(x, y);
+				discutcoin(x, y);
+				dismovecoin(x, y, axisx, axisy, selectcoin);
+				return;
+			}
+			if (colour == 3)
+			{
+				castling(x, y);
+				return;
+			}
+			if (colour == 14)
+			{
+				coinExchange(x, y);
+				return;
+			}
+			if (place[y][x] != 0)
+			{
+				if (((place[y][x] > 10) && (player == 2)) || ((place[y][x] < 10) && (place[y][x] > 0) && (player == 1)))
+				{
+					removemark();
+					discursor(x, y, 2);
+					movecoin(x, y);
+				}
+				else
+				{
+					setcolor(RED);
+					outtextxy(430, 692, (char *)"YOU HAVE SELECTED A WRONG COIN");
+					Sleep(2000);
+					setcolor(15);
+					setfillstyle(SOLID_FILL, 15);
+					bar(420, 691, 900, 709);
+					floodfill(421, 692, 15);
+				}
+			}
+			else if ((colour == 1))
+			{
+				dismovecoin(x, y, axisx, axisy, selectcoin);
+				return;
+			}
+			else
+				continue;
+		}
+		else if (c == 'z')
+			return;
+
+		else
+			continue;
+	}
+}
+//to select the coins and display the position
+void movecoin(int x, int y)
+{
+	if ((place[y][x] == 1) || (place[y][x] == 11))
+	{
+		movesoldier(x, y);
+		axisx = x;
+		axisy = y;
+		selectcoin = place[y][x];
+		return;
+	}
+	else if ((place[y][x] == 2) || (place[y][x] == 12))
+	{
+		moverook(x, y);
+		axisx = x;
+		axisy = y;
+		selectcoin = place[y][x];
+		return;
+	}
+	else if ((place[y][x] == 3) || (place[y][x] == 13))
+	{
+		moveknight(x, y);
+		axisx = x;
+		axisy = y;
+		selectcoin = place[y][x];
+		return;
+	}
+	else if ((place[y][x] == 4) || (place[y][x] == 14))
+	{
+		movebishop(x, y);
+		axisx = x;
+		axisy = y;
+		selectcoin = place[y][x];
+		return;
+	}
+	else if ((place[y][x] == 5) || (place[y][x] == 15))
+	{
+		movequeen(x, y);
+		axisx = x;
+		axisy = y;
+		selectcoin = place[y][x];
+		return;
+	}
+	else if ((place[y][x] == 6) || (place[y][x] == 16))
+	{
+		moveking(x, y);
+		axisx = x;
+		axisy = y;
+		selectcoin = place[y][x];
+		return;
+	}
+}
+//display the movement of the coin, move the coin 'cn' to x,y from x1,y1  and count for castling
+void dismovecoin(int x, int y, int x1, int y1, int cn)
+{
+	if ((cn == 1) || (cn == 11))
+	{
+		disbox(x1, y1);
+		dissoldier(x, y, (cn == 1) ? 7 : 5);
+		swaplace(x, y, x1, y1);
+		removemark();
+		return;
+	}
+	else if ((cn == 2) || (cn == 12))
+	{
+		disbox(x1, y1);
+		disrook(x, y, (cn == 2) ? 7 : 5);
+		swaplace(x, y, x1, y1);
+		removemark();
+		clr2r = ((cn == 12) && (x1 == 7) && (y1 == 7)) ? 1 : 0;
+		clr2l = ((cn == 12) && (x1 == 0) && (y1 == 7)) ? 1 : 0;
+		clr1r = ((cn == 2) && (x1 == 7) && (y1 == 0)) ? 1 : 0;
+		clr1l = ((cn == 2) && (x1 == 0) && (y1 == 0)) ? 1 : 0;
+		return;
+	}
+	else if ((cn == 3) || (cn == 13))
+	{
+		disbox(x1, y1);
+		disknight(x, y, (cn == 3) ? 7 : 5);
+		swaplace(x, y, x1, y1);
+		removemark();
+		return;
+	}
+	else if ((cn == 4) || (cn == 14))
+	{
+		disbox(x1, y1);
+		disbishop(x, y, (cn == 4) ? 7 : 5);
+		swaplace(x, y, x1, y1);
+		removemark();
+		return;
+	}
+	else if ((cn == 5) || (cn == 15))
+	{
+		disbox(x1, y1);
+		disqueen(x, y, (cn == 5) ? 7 : 5);
+		swaplace(x, y, x1, y1);
+		removemark();
+		return;
+	}
+	else if ((cn == 6) || (cn == 16))
+	{
+		disbox(x1, y1);
+		disking(x, y, (cn == 6) ? 7 : 5);
+		swaplace(x, y, x1, y1);
+		if (cn == 6)
+		{
+			king1x = x;
+			king1y = y;
+			clk1 = 1;
+		}
+		else if (cn == 16)
+		{
+			king2x = x;
+			king2y = y;
+			clk2 = 1;
+		}
+		removemark();
+		return;
+	}
+}
+//display the square of the respective box
+void disbox(int x, int y)
+{
+	int cl = findcolor(x, y);
+	setcolor(0);
+	setfillstyle(SOLID_FILL, cl);
+	bar((x * 80) + 300, (y * 80) + 50, (x * 80) + 380, (y * 80) + 130);
+	floodfill((x * 80) + 301, (y * 80) + 51, cl);
+}
+//to display the defeated coin by the side of the board
+void discutcoin(int x, int y)
+{
+	i = 9;
+	j = 2;
+	if (place[y][x] > 10)
+	{
+		switch (place[y][x])
+		{
+		case 11:
+			dissoldier(coin2x, coin2y, 5);
+			cutcoin2[coin2x - i][coin2y] = 11;
+			break;
+		case 12:
+			disrook(coin2x, coin2y, 5);
+			cutcoin2[coin2x - i][coin2y] = 12;
+			break;
+		case 13:
+			disknight(coin2x, coin2y, 5);
+			cutcoin2[coin2x - i][coin2y] = 13;
+			break;
+		case 14:
+			disbishop(coin2x, coin2y, 5);
+			cutcoin2[coin2x - i][coin2y] = 14;
+			break;
+		case 15:
+			disqueen(coin2x, coin2y, 5);
+			cutcoin2[coin2x - i][coin2y] = 15;
+			break;
+		case 16:
+			disking(coin2x, coin2y, 5);
+			goconst = 1;
+			cutcoin2[coin2x - i][coin2y] = 16;
+			break;
+		}
+		coin2y++;
+		if (coin2y > 7)
+		{
+			coin2y = 0;
+			coin2x = 10;
+			i++;
+		}
+	}
+	else if (place[y][x] > 0)
+	{
+		switch (place[y][x])
+		{
+		case 1:
+			dissoldier(coin1x, coin1y, 7);
+			cutcoin1[coin1x + j][coin1y] = 1;
+			break;
+		case 2:
+			disrook(coin1x, coin1y, 7);
+			cutcoin1[coin1x + j][coin1y] = 2;
+			break;
+		case 3:
+			disknight(coin1x, coin1y, 7);
+			cutcoin1[coin1x + j][coin1y] = 3;
+			break;
+		case 4:
+			disbishop(coin1x, coin1y, 7);
+			cutcoin1[coin1x + j][coin1y] = 4;
+			break;
+		case 5:
+			disqueen(coin1x, coin1y, 7);
+			cutcoin1[coin1x + j][coin1y] = 5;
+			break;
+		case 6:
+			disking(coin1x, coin1y, 7);
+			goconst = 2;
+			cutcoin1[coin1x + j][coin1y] = 6;
+			break;
+		}
+		coin1y++;
+		if (coin1y > 7)
+		{
+			coin1y = 0;
+			coin1x = -3;
+			j++;
+		}
+	}
+}
+//define the movement of the coins
+//******************************//
+//display the squares where the soldier can be moved
+void movesoldier(int x, int y)
+{
+	if (place[y][x] == 11)
+	{
+		if ((y == 6) && (place[y - 2][x] == 0))
+			discursor(x, y - 2, 1);
+		if (inboard(y - 1, x))
+		{
+			if ((place[y - 1][x] == 0))
+				discursor(x, y - 1, ((y - 1) == 0) ? 14 : 1);
+		}
+		if (inboard(y - 1, x - 1))
+		{
+			if ((place[y - 1][x - 1] < 10) && (place[y - 1][x - 1] > 0))
+				discursor(x - 1, y - 1, ((y - 1) == 0) ? 14 : 4);
+		}
+		if (inboard(y - 1, x + 1))
+		{
+			if ((place[y - 1][x + 1] < 10) && (place[y - 1][x + 1] > 0))
+				discursor(x + 1, y - 1, ((y - 1) == 0) ? 14 : 4);
+		}
+		return;
+	}
+	if (place[y][x] == 1)
+	{
+		if ((y == 1) && (place[y + 2][x] == 0))
+			discursor(x, y + 2, 1);
+		if (inboard(y + 1, x))
+		{
+			if (place[y + 1][x] == 0)
+				discursor(x, y + 1, ((y + 1) == 7) ? 14 : 1);
+		}
+		if (inboard(y + 1, x - 1))
+		{
+			if ((place[y + 1][x - 1] > 10))
+				discursor(x - 1, y + 1, ((y + 1) == 7) ? 14 : 4);
+		}
+		if (inboard(y + 1, x + 1))
+		{
+			if ((place[y + 1][x + 1] > 10))
+				discursor(x + 1, y + 1, ((y + 1) == 7) ? 14 : 4);
+		}
+		return;
+	}
+}
+//display the squares where the rook can be moved
+void moverook(int x, int y)
+{
+	int l1 = x, l2 = y, r1 = x, r2 = y, t1 = x, t2 = y, d1 = x, d2 = y, count;
+	for (i = 0; i < 8; i++)
+	{
+		if (inboard(t1, t2 - 1))
+		{
+			if ((place[t2 - 1][t1] == 0))
+			{
+				discursor(t1, (t2--) - 1, 1);
+			}
+		}
+		if (inboard(d1, d2 + 1))
+		{
+			if ((place[d2 + 1][d1] == 0))
+			{
+				discursor(d1, (d2++) + 1, 1);
+			}
+		}
+		if (inboard(r1 + 1, r2))
+		{
+			if ((place[r2][r1 + 1] == 0))
+			{
+				discursor((r1++) + 1, r2, 1);
+			}
+		}
+		if (inboard(l1 - 1, l2))
+		{
+			if ((place[l2][l1 - 1] == 0))
+			{
+				discursor((l1--) - 1, l2, 1);
+			}
+		}
+	}
+	//to display the oppanent coins in the way
+	if ((place[y][x] > 0) && (place[y][x] < 10))
+	{
+		if (inboard(t1, t2 - 1))
+		{
+			if ((place[t2 - 1][t1] > 10))
+			{
+				discursor(t1, t2 - 1, RED);
+			}
+		}
+		if ((inboard(d1, d2 + 1)))
+		{
+			if ((place[d2 + 1][d1] > 10))
+			{
+				discursor(d1, d2 + 1, RED);
+			}
+		}
+		if ((inboard(l1 - 1, l2)))
+		{
+			if ((place[l2][l1 - 1] > 10))
+			{
+				discursor(l1 - 1, l2, RED);
+			}
+		}
+		if ((inboard(r1 + 1, r2)))
+		{
+			if ((place[r2][r1 + 1] > 10))
+			{
+				discursor(r1 + 1, r2, RED);
+			}
+		}
+	}
+	//
+	if (place[y][x] > 10)
+	{
+		if ((inboard(t1, t2 - 1)))
+		{
+			if ((place[t2 - 1][t1] > 0) && (place[t2 - 1][t1] < 10))
+			{
+				discursor(t1, t2 - 1, RED);
+			}
+		}
+		if ((inboard(d1, d2 + 1)))
+		{
+			if ((place[d2 + 1][d1] > 0) && (place[d2 + 1][d1] < 10))
+			{
+				discursor(d1, d2 + 1, RED);
+			}
+		}
+		if ((inboard(l1 - 1, l2)))
+		{
+			if ((place[l2][l1 - 1] > 0) && (place[l2][l1 - 1] < 10))
+			{
+				discursor(l1 - 1, l2, RED);
+			}
+		}
+		if ((inboard(r1 + 1, r2)))
+		{
+			if ((place[r2][r1 + 1] > 0) && (place[r2][r1 + 1] < 10))
+			{
+				discursor(r1 + 1, r2, RED);
+			}
+		}
+	}
+}
+//display the squares where the knight can be moved
+void moveknight(int x, int y)
+{
+	if ((inboard(y - 1, x + 2)))
+	{
+		if ((place[y - 1][x + 2] == 0))
+		{
+			discursor(x + 2, y - 1, 1);
+		}
+		else if (((place[y][x] > 10) && ((place[y - 1][x + 2] < 10) && (place[y - 1][x + 2] > 0))) || ((place[y - 1][x + 2] > 10) && ((place[y][x] < 10) && (place[y][x] > 0))))
+		{
+			discursor(x + 2, y - 1, RED);
+		}
+	}
+	if (inboard(y + 1, x + 2))
+	{
+		if (place[y + 1][x + 2] == 0)
+		{
+			discursor(x + 2, y + 1, 1);
+		}
+		else if (((place[y][x] > 10) && ((place[y + 1][x + 2] < 10) && (place[y + 1][x + 2] > 0))) || ((place[y + 1][x + 2] > 10) && ((place[y][x] < 10) && (place[y][x] > 0))))
+		{
+			discursor(x + 2, y + 1, RED);
+		}
+	}
+	if (inboard(y - 1, x - 2))
+	{
+		if (place[y - 1][x - 2] == 0)
+		{
+			discursor(x - 2, y - 1, 1);
+		}
+		else if (((place[y][x] > 10) && ((place[y - 1][x - 2] < 10) && (place[y - 1][x - 2] > 0))) || ((place[y - 1][x - 2] > 10) && ((place[y][x] < 10) && (place[y][x] > 0))))
+		{
+			discursor(x - 2, y - 1, RED);
+		}
+	}
+	if (inboard(y + 1, x - 2))
+	{
+		if (place[y + 1][x - 2] == 0)
+		{
+			discursor(x - 2, y + 1, 1);
+		}
+		else if (((place[y][x] > 10) && ((place[y + 1][x - 2] < 10) && (place[y + 1][x - 2] > 0))) || ((place[y + 1][x - 2] > 10) && ((place[y][x] < 10) && (place[y][x] > 0))))
+		{
+			discursor(x - 2, y + 1, RED);
+		}
+	}
+	if (inboard(y - 2, x + 1))
+	{
+		if (place[y - 2][x + 1] == 0)
+		{
+			discursor(x + 1, y - 2, 1);
+		}
+		else if (((place[y][x] > 10) && ((place[y - 2][x + 1] < 10) && (place[y - 2][x + 1] > 0))) || ((place[y - 2][x + 1] > 10) && ((place[y][x] < 10) && (place[y][x] > 0))))
+		{
+			discursor(x + 1, y - 2, RED);
+		}
+	}
+	if (inboard(y - 2, x - 1))
+	{
+		if (place[y - 2][x - 1] == 0)
+		{
+			discursor(x - 1, y - 2, 1);
+		}
+		else if (((place[y][x] > 10) && ((place[y - 2][x - 1] < 10) && (place[y - 2][x - 1] > 0))) || ((place[y - 2][x - 1] > 10) && ((place[y][x] < 10) && (place[y][x] > 0))))
+		{
+			discursor(x - 1, y - 2, RED);
+		}
+	}
+	if (inboard(y + 2, x + 1))
+	{
+		if (place[y + 2][x + 1] == 0)
+		{
+			discursor(x + 1, y + 2, 1);
+		}
+		else if (((place[y][x] > 10) && ((place[y + 2][x + 1] < 10) && (place[y + 2][x + 1] > 0))) || ((place[y + 2][x + 1] > 10) && ((place[y][x] < 10) && (place[y][x] > 0))))
+		{
+			discursor(x + 1, y + 2, RED);
+		}
+	}
+	if (inboard(y + 2, x - 1))
+	{
+		if (place[y + 2][x - 1] == 0)
+		{
+			discursor(x - 1, y + 2, 1);
+		}
+		else if (((place[y][x] > 10) && ((place[y + 2][x - 1] < 10) && (place[y + 2][x - 1] > 0))) || ((place[y + 2][x - 1] > 10) && ((place[y][x] < 10) && (place[y][x] > 0))))
+		{
+			discursor(x - 1, y + 2, RED);
+		}
+	}
+}
+//display the squares where the bishop can be moved
+void movebishop(int x, int y)
+{
+	int l1 = x, l2 = y, r1 = x, r2 = y, t1 = x, t2 = y, d1 = x, d2 = y;
+	for (i = 0; i < 8; i++)
+	{
+		if (inboard(t1 + 1, t2 - 1))
+		{
+			if ((place[t2 - 1][t1 + 1] == 0))
+			{
+				discursor((t1++) + 1, (t2--) - 1, 1);
+			}
+		}
+		if (inboard(r1 + 1, r2 + 1))
+		{
+			if ((place[r2 + 1][r1 + 1] == 0))
+			{
+				discursor((r1++) + 1, (r2++) + 1, 1);
+			}
+		}
+		if (inboard(l1 - 1, l2 - 1))
+		{
+			if ((place[l2 - 1][l1 - 1] == 0))
+			{
+				discursor((l1--) - 1, (l2--) - 1, 1);
+			}
+		}
+		if (inboard(d1 - 1, d2 + 1))
+		{
+			if ((place[d2 + 1][d1 - 1] == 0))
+			{
+				discursor((d1--) - 1, (d2++) + 1, 1);
+			}
+		}
+	}
+	//to display the oppanent coins in the way
+	if ((place[y][x] > 0) && (place[y][x] < 10))
+	{
+		if (inboard(t1 + 1, t2 - 1))
+		{
+			if ((place[t2 - 1][t1 + 1] > 10))
+			{
+				discursor(t1 + 1, t2 - 1, RED);
+			}
+		}
+		if ((inboard(d1 - 1, d2 + 1)))
+		{
+			if ((place[d2 + 1][d1 - 1] > 10))
+			{
+				discursor(d1 - 1, d2 + 1, RED);
+			}
+		}
+		if ((inboard(l1 - 1, l2 - 1)))
+		{
+			if ((place[l2 - 1][l1 - 1] > 10))
+			{
+				discursor(l1 - 1, l2 - 1, RED);
+			}
+		}
+		if ((inboard(r1 + 1, r2 + 1)))
+		{
+			if ((place[r2 + 1][r1 + 1] > 10))
+			{
+				discursor(r1 + 1, r2 + 1, RED);
+			}
+		}
+	}
+	//
+	if (place[y][x] > 10)
+	{
+		if ((inboard(t1 + 1, t2 - 1)))
+		{
+			if ((place[t2 - 1][t1 + 1] > 0) && (place[t2 - 1][t1 + 1] < 10))
+			{
+				discursor(t1 + 1, t2 - 1, RED);
+			}
+		}
+		if ((inboard(d1 - 1, d2 + 1)))
+		{
+			if ((place[d2 + 1][d1 - 1] > 0) && (place[d2 + 1][d1 - 1] < 10))
+			{
+				discursor(d1 - 1, d2 + 1, RED);
+			}
+		}
+		if ((inboard(l1 - 1, l2 - 1)))
+		{
+			if ((place[l2 - 1][l1 - 1] > 0) && (place[l2 - 1][l1 - 1] < 10))
+			{
+				discursor(l1 - 1, l2 - 1, RED);
+			}
+		}
+		if ((inboard(r1 + 1, r2 + 1)))
+		{
+			if ((place[r2 + 1][r1 + 1] > 0) && (place[r2 + 1][r1 + 1] < 10))
+			{
+				discursor(r1 + 1, r2 + 1, RED);
+			}
+		}
+	}
+}
+//display the squares where the queen can be moved
+void movequeen(int x, int y)
+{
+	moverook(x, y);
+	movebishop(x, y);
+}
+//display the squares where the king can be moved
+void moveking(int x, int y)
+{
+	for (i = x - 1; i <= x + 1; i++)
+	{
+		for (j = y - 1; j <= y + 1; j++)
+		{
+			if (inboard(i, j))
+			{
+				if ((place[j][i] == 0))
+					discursor(i, j, 1);
+				else if (((place[y][x] == 16) && ((place[j][i] < 10) && (place[j][i] > 0))) || ((place[j][i] > 10) && (place[y][x] == 6)))
+				{
+					discursor(i, j, RED);
+				}
+			}
+		}
+	}
+	//castling process display
+	if ((place[y][x] == 16) && (clk2 == 0)) //coin2
+	{
+		if ((clr2r == 0) && (place[y][x + 1] == 0) && (place[y][x + 2] == 0))
+			discursor(6, 7, 3);
+		if ((clr2l == 0) && (place[y][x - 1] == 0) && (place[y][x - 2] == 0) && (place[y][x - 3] == 0))
+			discursor(2, 7, 3);
+	}
+	else if ((place[y][x] == 6) && (clk1 == 0)) //coin1
+	{
+		if ((clr1r == 0) && (place[y][x + 1] == 0) && (place[y][x + 2] == 0))
+			discursor(6, 0, 3);
+		if ((clr1l == 0) && (place[y][x - 1] == 0) && (place[y][x - 2] == 0) && (place[y][x - 3] == 0))
+			discursor(2, 0, 3);
+	}
+}
+//remove the move cursor from all the squares
+void removemark()
+{
+	for (i = 0; i <= 7; i++)
+	{
+		for (j = 0; j < 8; j++)
+		{
+			if ((i + j) % 2 == 0)
+				discursor(i, j, 15);
+			else
+				discursor(i, j, 0);
+		}
+	}
+}
+//to swap the two values of the place array
+void swaplace(int x, int y, int x1, int y1) //from x,y to x1,y1 and place[y][x]=0
+{
+	place[y][x] = place[y1][x1];
+	place[y1][x1] = 0;
+}
+//function to operate castelling and move the coins during castling
+void castling(int x, int y)
+{
+	if (x == 2) //queen side
+	{
+		dismovecoin(2, y, 4, y, (y == 7) ? 16 : 6);
+		dismovecoin(3, y, 0, y, (y == 7) ? 12 : 2);
+	}
+	else if (x == 6) //king side
+	{
+		dismovecoin(6, y, 4, y, (y == 7) ? 16 : 6);
+		dismovecoin(5, y, 7, y, (y == 7) ? 12 : 2);
+	}
+}
+//function to operate the coin exchange method
+void coinExchange(int x, int y)
+{
+	int cx, cy, n;
+	char cn;
+	if (y == 7) //for coin1
+	{
+		disbox(x, y);
+		dismovecoin(x, y, axisx, axisy, 1);
+		setcolor(RED);
+		outtextxy(400, 692, (char *)"ENTER NUMBER 2-ROOK 3-KNIGHT 4-BISHOP 5-QUEEN ");
+		setcolor(15);
+		cn = getch();
+		n = cn - 48;
+		setfillstyle(SOLID_FILL, 15);
+		bar(390, 691, 1000, 709);
+		floodfill(421, 692, 15);
+		discutcoin(x, y);
+		place[axisy][axisx] = n;
+		dismovecoin(x, y, axisx, axisy, n);
+		return;
+	}
+	else if (y == 0) //for coin 2
+	{
+		disbox(x, y);
+		dismovecoin(x, y, axisx, axisy, 11);
+		setcolor(RED);
+		outtextxy(400, 692, (char *)"ENTER NUMBER 2-ROOK 3-KNIGHT 4-BISHOP 5-QUEEN ");
+		setcolor(15);
+		cn = getch();
+		n = cn - 48;
+		setfillstyle(SOLID_FILL, 15);
+		bar(390, 691, 1000, 709);
+		floodfill(421, 692, 15);
+		discutcoin(x, y);
+		place[axisy][axisx] = n + 10;
+		dismovecoin(x, y, axisx, axisy, n + 10);
+	}
+}
+//to end the game with displaying the winner
+void gameover(int win)
+{
+	setbkcolor(WHITE);
+	cleardevice();
+	settextstyle(8, 0, 10);
+	setcolor(0);
+	if (win == 1)
+		outtextxy(120, 260, (char *)"PLAYER 1 WINS");
+	else if (win == 2)
+		outtextxy(120, 260, (char *)"PLAYER 2 WINS ");
+	settextstyle(8, 0, 4);
+	outtextxy(370, 500, (char *)"Programming by Sivabharath");
+}
